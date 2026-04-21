@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "dotcontext": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@dotcontext/mcp@latest",
+        "--lang",
+        "pt-BR"
+      ],
+      "env": {}
+    },
+    "mempalace": {
+      "command": "/home/walterfrey/.local/share/pipx/venvs/mempalace/bin/python",
+      "args": [
+        "-m",
+        "mempalace.mcp_server"
+      ]
+    }
+  }
+}

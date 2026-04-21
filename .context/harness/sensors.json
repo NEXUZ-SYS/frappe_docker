@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "source": "manual",
+  "generatedAt": "2026-04-21",
+  "stack": {
+    "primaryLanguage": "python",
+    "languages": ["python", "yaml", "dockerfile", "shell"],
+    "frameworks": ["docker-compose", "vitepress", "pytest"],
+    "buildTools": ["docker", "docker-buildx", "docker-bake"],
+    "testFrameworks": ["pytest"],
+    "packageManager": "pip"
+  },
+  "commands": {
+    "lint": [
+      {
+        "name": "pre-commit",
+        "cmd": "pre-commit run --all-files --color=always",
+        "purpose": "Run full lint stack (black, isort, pyupgrade, prettier, codespell, shellcheck, shfmt, whitespace)"
+      }
+    ],
+    "test": [
+      {
+        "name": "pytest-install-deps",
+        "cmd": "pip install -r requirements-test.txt",
+        "purpose": "Install test dependencies"
+      },
+      {
+        "name": "pytest",
+        "cmd": "pytest tests/test_frappe_docker.py -v",
+        "purpose": "Run integration tests against a running compose stack"
+      }
+    ],
+    "build": [
+      {
+        "name": "compose-demo",
+        "cmd": "docker compose -f pwd.yml up -d",
+        "purpose": "Boot disposable demo stack (Play-with-Docker style)"
+      },
+      {
+        "name": "compose-prod-mariadb-https",
+        "cmd": "docker compose -f compose.yaml -f overrides/compose.mariadb.yaml -f overrides/compose.redis.yaml -f overrides/compose.https.yaml up -d",
+        "purpose": "Typical production deploy composition with MariaDB + Redis + HTTPS"
+      },
+      {
+        "name": "bake",
+        "cmd": "docker buildx bake -f docker-bake.hcl",
+        "purpose": "Build ERPNext images from images/production/Containerfile"
+      }
+    ],
+    "run": [
+      {
+        "name": "installer-help",
+        "cmd": "python development/installer.py --help",
+        "purpose": "Show bench installer CLI options"
+      }
+    ],
+    "health": [
+      {
+        "name": "check-connections",
+        "cmd": "python tests/_check_connections.py",
+        "purpose": "Ping DB and Redis from inside the compose network"
+      },
+      {
+        "name": "ping-frappe",
+        "cmd": "python tests/_ping_frappe_connections.py",
+        "purpose": "Verify Frappe bench reaches DB and cache"
+      }
+    ]
+  },
+  "paths": {
+    "sourceRoots": ["images", "overrides", "tests", "development", "docs"],
+    "testRoots": ["tests"],
+    "docsRoots": ["docs"],
+    "ciConfigs": [".github/workflows", ".pre-commit-config.yaml"],
+    "ignore": ["docs/pnpm-lock.yaml", ".history", ".vscode"]
+  },
+  "sensors": []
+}
