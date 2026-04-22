@@ -1,6 +1,7 @@
 [
-  { "url": "https://github.com/frappe/erpnext", "branch": "version-16" },
-  { "url": "https://github.com/frappe/crm",     "branch": "main"       },
-  { "url": "https://github.com/frappe/lms",     "branch": "main"       },
-  { "url": "https://github.com/frappe/builder", "branch": "master"     }
+  { "url": "https://github.com/frappe/erpnext",  "branch": "version-16" },
+  { "url": "https://github.com/frappe/payments", "branch": "version-16" },
+  { "url": "https://github.com/frappe/crm",      "branch": "main"       },
+  { "url": "https://github.com/frappe/lms",      "branch": "main"       },
+  { "url": "https://github.com/frappe/builder",  "branch": "master"     }
 ]
