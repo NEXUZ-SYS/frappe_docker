@@ -47,3 +47,6 @@ node_modules
 .context/**/archive/
 
 .history/*
+
+# Nxz test base secrets (API keys etc.)
+nxz/.secrets/
