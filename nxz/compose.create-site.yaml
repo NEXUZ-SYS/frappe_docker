@@ -1,0 +1,32 @@
+services:
+  create-site:
+    image: ${CUSTOM_IMAGE}:${CUSTOM_TAG}
+    pull_policy: ${PULL_POLICY:-never}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        if [ -d "sites/${SITES}" ]; then
+          echo "Site ${SITES} já existe, pulando criação."
+          exit 0
+        fi
+        bench new-site \
+          --no-mariadb-socket \
+          --admin-password="$$ADMIN_PASSWORD" \
+          --db-root-password="$$DB_PASSWORD" \
+          --install-app erpnext \
+          --install-app crm \
+          --install-app lms \
+          --install-app builder \
+          --set-default \
+          ${SITES}
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      DB_PASSWORD: ${DB_PASSWORD}
