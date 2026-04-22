@@ -92,6 +92,39 @@ docker logs nxz-create-site-1 | tail -n 20
 curl -H "Host: erpnext.localhost" http://localhost:8080/api/method/ping
 ```
 
+## Sintoma: `AuthenticationError: Failed to decrypt key User.*.api_secret` logo após `up.sh`
+
+**Diagnóstico:** drift no `encryption_key` do site durante o bootstrap. O primeiro `bench new-site` (rodado pelo `create-site`) grava um `encryption_key` em `sites/erpnext.localhost/site_config.json`. Se `gen-api-key.sh` roda **antes** do bootstrap estabilizar (ou se um segundo container regrava `site_config.json`), o `api_secret` fica criptografado com uma chave que não bate mais com a que está no config. Resultado: `cryptography.fernet.InvalidToken: Signature did not match digest` no `get_decrypted_password`.
+
+**Sinais:**
+
+- Primeira chamada autenticada passa (às vezes), seguintes falham 10/10.
+- `docker exec nxz-backend-1 bench --site erpnext.localhost execute frappe.utils.password.get_decrypted_password --args '["User","Administrator","api_secret"]'` retorna `InvalidToken`.
+- O `encryption_key` em `site_config.json` existe, mas não decifra o ciphertext armazenado.
+
+**Fix (simples):**
+
+```bash
+./nxz/gen-api-key.sh Administrator --save
+```
+
+Re-gerar reinstala o secret cifrado com a chave **atual** do site. HTTP volta a funcionar deterministicamente.
+
+**Verificação:**
+
+```bash
+source nxz/.secrets/Administrator.env
+for i in 1 2 3 4 5; do
+  curl -sS -H "Host: erpnext.localhost" \
+       -H "Authorization: token $FRAPPE_API_KEY:$FRAPPE_API_SECRET" \
+       http://localhost:8080/api/method/frappe.auth.get_logged_user
+  echo
+done
+# 5x {"message":"Administrator"}
+```
+
+**Regra prática:** depois de `./nxz/up.sh` numa stack recém-criada (ou recém-resetada), rode `gen-api-key.sh` **uma vez** para "carimbar" o secret com a chave estável. Só distribua as credenciais depois dessa etapa.
+
 ## Sintoma: `api_secret` de ontem retorna 401
 
 **Diagnóstico:** alguém rodou `./nxz/gen-api-key.sh <mesmo_user>` depois. O script rotaciona o secret a cada chamada.
